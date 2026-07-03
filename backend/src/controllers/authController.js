@@ -46,7 +46,7 @@ async function register(req, res, next) {
     if (handleValidation(req, res)) return;
 
     const username = normalizeUsername(req.body.username);
-    const email = req.body.email.trim();
+    const email = req.body.email.trim().toLowerCase();
     const password = normalizePassword(req.body.password);
 
     const passwordHash = await bcrypt.hash(password, 10);

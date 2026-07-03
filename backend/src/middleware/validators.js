@@ -5,7 +5,11 @@ const registerValidation = [
     .trim()
     .isLength({ min: 3, max: 50 })
     .withMessage("Username must be 3-50 characters"),
-  body("email").trim().isEmail().withMessage("Valid email is required"),
+  body("email")
+    .trim()
+    .normalizeEmail()
+    .isEmail()
+    .withMessage("Enter a valid email (e.g. name@gmail.com)"),
   body("password")
     .trim()
     .isLength({ min: 6 })

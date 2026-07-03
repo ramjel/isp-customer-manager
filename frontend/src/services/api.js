@@ -7,11 +7,17 @@ const api = axios.create({
   },
 });
 
-// ✅ REQUEST INTERCEPTOR (clean + safe)
+function isPublicAuthRoute(url = "") {
+  return url.includes("/auth/login") || url.includes("/auth/register");
+}
+
+function isSessionCheckRoute(url = "") {
+  return url.includes("/auth/me");
+}
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
 
-  // only attach if exists
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   } else {
@@ -21,21 +27,19 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// ✅ RESPONSE INTERCEPTOR (clean session reset)
 api.interceptors.response.use(
   (res) => res,
   (err) => {
     const status = err.response?.status;
-
-    console.error("API ERROR:", err.response?.data || err.message);
-
     const requestUrl = err.config?.url || "";
-    const isAuthRequest =
-      requestUrl.includes("/auth/login") ||
-      requestUrl.includes("/auth/register");
+    const isExpectedAuthFailure =
+      isPublicAuthRoute(requestUrl) || isSessionCheckRoute(requestUrl);
 
-    // Expired/invalid token on protected routes — not failed login attempts
-    if (status === 401 && !isAuthRequest) {
+    if (!isExpectedAuthFailure) {
+      console.error("API ERROR:", err.response?.data || err.message);
+    }
+
+    if (status === 401 && !isExpectedAuthFailure) {
       localStorage.removeItem("token");
 
       if (window.location.pathname !== "/login") {

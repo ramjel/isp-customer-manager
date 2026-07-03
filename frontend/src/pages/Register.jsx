@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 function Register() {
-  const { register, isAuthenticated } = useAuth();
+  const { register, isAuthenticated, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({
     username: "",
@@ -15,17 +15,24 @@ function Register() {
   const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  if (authLoading) {
+    return <div className="page-loading">Loading...</div>;
+  }
+
   if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }
+
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
 
   const validate = () => {
     const nextErrors = {};
     if (!form.username.trim() || form.username.trim().length < 3) {
       nextErrors.username = "Username must be at least 3 characters";
     }
-    if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      nextErrors.email = "Valid email is required";
+    const email = form.email.trim().toLowerCase();
+    if (!email || !emailPattern.test(email)) {
+      nextErrors.email = "Enter a valid email (e.g. name@gmail.com)";
     }
     const password = form.password.trim();
     if (!password || password.length < 6) {
@@ -47,7 +54,7 @@ function Register() {
     try {
       await register(
         form.username.trim(),
-        form.email.trim(),
+        form.email.trim().toLowerCase(),
         form.password.trim(),
       );
       navigate("/");
