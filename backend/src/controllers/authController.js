@@ -77,12 +77,15 @@ async function login(req, res, next) {
   try {
     if (handleValidation(req, res)) return;
 
-    const { username, password } = req.body;
+    let { username, password } = req.body;
+
+    username = username.trim();
+    password = password.trim();
 
     const result = await pool.query(
       `SELECT id, username, email, password_hash, role, created_at 
        FROM users 
-       WHERE username = $1`,
+       WHERE LOWER(username) = LOWER($1)`,
       [username],
     );
 
@@ -104,7 +107,6 @@ async function login(req, res, next) {
       });
     }
 
-    // clean user object (IMPORTANT FIX)
     const user = {
       id: dbUser.id,
       username: dbUser.username,
@@ -118,10 +120,7 @@ async function login(req, res, next) {
     return res.json({
       success: true,
       message: "Login successful",
-      data: {
-        user,
-        token,
-      },
+      data: { user, token },
     });
   } catch (error) {
     next(error);
