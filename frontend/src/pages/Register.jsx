@@ -27,10 +27,11 @@ function Register() {
     if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       nextErrors.email = "Valid email is required";
     }
-    if (!form.password || form.password.length < 6) {
+    const password = form.password.trim();
+    if (!password || password.length < 6) {
       nextErrors.password = "Password must be at least 6 characters";
     }
-    if (form.password !== form.confirmPassword) {
+    if (password !== form.confirmPassword.trim()) {
       nextErrors.confirmPassword = "Passwords do not match";
     }
     setErrors(nextErrors);
@@ -44,7 +45,11 @@ function Register() {
 
     setLoading(true);
     try {
-      await register(form.username.trim(), form.email.trim(), form.password);
+      await register(
+        form.username.trim(),
+        form.email.trim(),
+        form.password.trim(),
+      );
       navigate("/");
     } catch (error) {
       setApiError(error.response?.data?.message || "Registration failed");

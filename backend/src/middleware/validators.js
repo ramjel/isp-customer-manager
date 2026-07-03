@@ -7,6 +7,7 @@ const registerValidation = [
     .withMessage("Username must be 3-50 characters"),
   body("email").trim().isEmail().withMessage("Valid email is required"),
   body("password")
+    .trim()
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters"),
 ];
@@ -24,6 +25,7 @@ const loginValidation = [
     .exists()
     .withMessage("Password is required")
     .bail()
+    .trim()
     .notEmpty()
     .withMessage("Password cannot be empty"),
 ];

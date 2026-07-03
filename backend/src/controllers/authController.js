@@ -30,6 +30,14 @@ function createToken(user) {
   );
 }
 
+function normalizeUsername(username) {
+  return username.trim().toLowerCase();
+}
+
+function normalizePassword(password) {
+  return password.trim();
+}
+
 /**
  * REGISTER
  */
@@ -37,7 +45,9 @@ async function register(req, res, next) {
   try {
     if (handleValidation(req, res)) return;
 
-    const { username, email, password } = req.body;
+    const username = normalizeUsername(req.body.username);
+    const email = req.body.email.trim();
+    const password = normalizePassword(req.body.password);
 
     const passwordHash = await bcrypt.hash(password, 10);
 
@@ -77,16 +87,17 @@ async function login(req, res, next) {
   try {
     if (handleValidation(req, res)) return;
 
-    let { username, password } = req.body;
-
-    username = username.trim();
-    password = password.trim();
+    const usernameInput = req.body.username.trim();
+    const username = normalizeUsername(usernameInput);
+    const password = normalizePassword(req.body.password);
 
     const result = await pool.query(
-      `SELECT id, username, email, password_hash, role, created_at 
-       FROM users 
-       WHERE LOWER(username) = LOWER($1)`,
-      [username],
+      `SELECT id, username, email, password_hash, role, created_at
+       FROM users
+       WHERE LOWER(username) = $1
+       ORDER BY CASE WHEN username = $2 THEN 0 ELSE 1 END, id DESC
+       LIMIT 1`,
+      [username, usernameInput],
     );
 
     if (result.rows.length === 0) {

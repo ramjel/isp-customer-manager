@@ -29,12 +29,18 @@ api.interceptors.response.use(
 
     console.error("API ERROR:", err.response?.data || err.message);
 
-    // 🚨 if token is invalid → force clean logout
-    if (status === 401) {
+    const requestUrl = err.config?.url || "";
+    const isAuthRequest =
+      requestUrl.includes("/auth/login") ||
+      requestUrl.includes("/auth/register");
+
+    // Expired/invalid token on protected routes — not failed login attempts
+    if (status === 401 && !isAuthRequest) {
       localStorage.removeItem("token");
 
-      // IMPORTANT: full reload to reset axios state
-      window.location.href = "/login";
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
     }
 
     return Promise.reject(err);

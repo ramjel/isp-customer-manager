@@ -44,7 +44,7 @@ function Login() {
     setLoading(true);
 
     try {
-      await login(form.username.trim(), form.password);
+      await login(form.username.trim(), form.password.trim());
       navigate("/");
     } catch (error) {
       setApiError(error.response?.data?.message || "Login failed");
